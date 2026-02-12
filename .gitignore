@@ -1,0 +1,36 @@
+# Python артефакты
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+
+# Airflow файлы
+airflow.db
+airflow.cfg
+webserver_config.py
+logs/
+airflow_home/
+
+# IDE и редактор
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# системные файлы
+.DS_Store
+Thumbs.db
+
+# Docker данные
+docker/postgres-airflow-data/
+docker/postgres-dwh-data/
+
+# переменные окружения
+.env
+*.env.local

@@ -1,0 +1,97 @@
+# =============================================================
+# Конфигурация ETL-источников и таблиц
+# =============================================================
+#
+# Для добавления нового источника достаточно добавить блок
+# в секцию sources и перечислить таблицы для переноса.
+# DAG генерируется автоматически из этого файла.
+# =============================================================
+
+# Настройки целевого хранилища (DWH)
+target:
+  host: "postgres-dwh"
+  port: 5432
+  database: "dwh"
+  user: "dwh"
+  password: "dwh"
+
+# Глобальные настройки ETL
+defaults:
+  chunk_size: 10000
+  truncate_before_load: true
+  schedule_interval: "0 2 * * *"   # Ежедневно в 02:00
+  retries: 2
+  retry_delay_minutes: 5
+  sla_minutes: 60
+
+# Источники данных
+sources:
+  # -----------------------------------------------------------
+  # Пример источника: учётная система бухгалтерии
+  # -----------------------------------------------------------
+  - name: "accounting_system"
+    description: "Учётная система бухгалтерии"
+    host: "accounting-db.internal"
+    port: 5432
+    database: "accounting"
+    user: "etl_reader"
+    password: "{{ var.value.accounting_password }}"   # Airflow Variable
+    tables:
+      - source_schema: "public"
+        source_table: "invoices"
+        target_schema: "accounting"
+        target_table: "invoices"
+
+      - source_schema: "public"
+        source_table: "payments"
+        target_schema: "accounting"
+        target_table: "payments"
+
+      - source_schema: "public"
+        source_table: "accounts"
+        target_schema: "accounting"
+        target_table: "accounts"
+
+  # -----------------------------------------------------------
+  # Пример источника: система управления складом
+  # -----------------------------------------------------------
+  - name: "warehouse_system"
+    description: "Система управления складом"
+    host: "warehouse-db.internal"
+    port: 5432
+    database: "warehouse"
+    user: "etl_reader"
+    password: "{{ var.value.warehouse_password }}"
+    schedule_interval: "0 3 * * *"   # Переопределение расписания
+    tables:
+      - source_schema: "inventory"
+        source_table: "products"
+        target_schema: "warehouse"
+        target_table: "products"
+
+      - source_schema: "inventory"
+        source_table: "stock_movements"
+        target_schema: "warehouse"
+        target_table: "stock_movements"
+        chunk_size: 50000   # Большая таблица — увеличенный чанк
+
+  # -----------------------------------------------------------
+  # Пример источника: CRM
+  # -----------------------------------------------------------
+  - name: "crm_system"
+    description: "CRM система"
+    host: "crm-db.internal"
+    port: 5432
+    database: "crm"
+    user: "etl_reader"
+    password: "{{ var.value.crm_password }}"
+    tables:
+      - source_schema: "public"
+        source_table: "customers"
+        target_schema: "crm"
+        target_table: "customers"
+
+      - source_schema: "public"
+        source_table: "orders"
+        target_schema: "crm"
+        target_table: "orders"
